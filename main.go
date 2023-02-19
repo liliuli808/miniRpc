@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"miniRpc/codec"
+	"miniRpc/server"
 	"net"
 	"time"
 )
@@ -17,7 +18,7 @@ func startServer(addr chan string) {
 	}
 	log.Println("start rpc server on", l.Addr())
 	addr <- l.Addr().String()
-	Accept(l)
+	server.Accept(l)
 }
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 
 	time.Sleep(time.Second)
 	// send options
-	_ = json.NewEncoder(conn).Encode(DefaultOption)
+	_ = json.NewEncoder(conn).Encode(server.DefaultOption)
 	cc := codec.NewGobCodec(conn)
 	// send request & receive response
 	for i := 0; i < 5; i++ {
