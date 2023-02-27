@@ -1,10 +1,13 @@
 package client
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"miniRpc/codec"
 	"miniRpc/server"
+	"net"
 	"sync"
 )
 
@@ -94,4 +97,50 @@ func (client *Client) receive() {
 		}
 	}
 	client.terminateCalls(err)
+}
+
+func NewClient(conn net.Conn, opt *server.Option) (*Client, error) {
+	f := codec.NewCodecFuncMap[opt.CodecType]
+	if f == nil {
+		err := fmt.Errorf("invalid codec type %s", opt.CodecType)
+		log.Println("rpc client: codec error:", err)
+		return nil, err
+	}
+	err := json.NewEncoder(conn).Encode(opt)
+	if err != nil {
+		return nil, err
+	}
+	return newClientCodec(f(conn), opt)
+}
+
+func newClientCodec(cc codec.Codec, opt *server.Option) (*Client, error) {
+	client := &Client{
+		seq:     1,
+		cc:      cc,
+		option:  opt,
+		pending: make(map[uint64]*Call),
+	}
+	go client.receive()
+	return client, nil
+}
+
+func Dial(netWork, address string, option *server.Option) (client *Client, err error) {
+	conn, err := net.Dial(netWork, address)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if client == nil {
+			_ = conn.Close()
+		}
+	}()
+
+	return NewClient(conn, option)
+}
+
+func (client *Client) send(call *Call) {
+	client.sending.Lock()
+	defer client.sending.Unlock()
+
 }

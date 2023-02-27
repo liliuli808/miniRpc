@@ -14,13 +14,13 @@ import (
 const MagicNum = 0x3bef5c
 
 type Option struct {
-	MagicNum int
-	CodeType codec.Type
+	MagicNum  int
+	CodecType codec.Type
 }
 
 var DefaultOption = &Option{
-	CodeType: codec.GobType,
-	MagicNum: MagicNum,
+	CodecType: codec.GobType,
+	MagicNum:  MagicNum,
 }
 
 type Server struct {
@@ -60,9 +60,9 @@ func (server *Server) ServerConn(conn io.ReadWriteCloser) {
 		log.Printf("rpc server: invalid magic number %x", opt.MagicNum)
 		return
 	}
-	f := codec.NewCodecFuncMap[opt.CodeType]
+	f := codec.NewCodecFuncMap[opt.CodecType]
 	if f == nil {
-		log.Printf("rpc server: invalid codec type %s", opt.CodeType)
+		log.Printf("rpc server: invalid codec type %s", opt.CodecType)
 		return
 	}
 	server.serverCodec(f(conn))
