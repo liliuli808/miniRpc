@@ -80,7 +80,7 @@ func (client *Client) receive() {
 		if err := client.cc.ReadBody(&h); err != nil {
 			break
 		}
-		call := client.removeCall(client.seq)
+		call := client.removeCall(h.Seq)
 		switch {
 		case call == nil:
 			err = client.cc.ReadBody(nil)
